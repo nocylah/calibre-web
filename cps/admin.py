@@ -533,7 +533,7 @@ def _configuration_oauth_helper(to_save):
         if element['provider_name'] == 'custom':
             if to_save["config_custom_oauth_base_url"] != element['oauth_base_url'] or \
                to_save["config_custom_oauth_token_url"] != element['oauth_token_url'] or \
-               to_save["config_custom_oauth_auth_url"] != element['oauth_auth_url']:
+               to_save["config_custom_oauth_auth_url"] != element['oauth_auth_url'] or \
                to_save["config_custom_oauth_userinfo_url"] != element['oauth_userinfo_url']:
                 reboot_required = True
                 element['oauth_base_url'] = to_save["config_custom_oauth_base_url"]
