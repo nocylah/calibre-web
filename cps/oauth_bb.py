@@ -181,12 +181,17 @@ if ub.oauth_support:
     oauthblueprints.append(ele3)
 
     for element in oauthblueprints:
+        extra_args = dict()
+
         if element['provider_name'] == 'github':
             blueprint_func = make_github_blueprint
         elif element['provider_name'] == 'google':
             blueprint_func = make_google_blueprint
         elif element['provider_name'] == 'custom':
             blueprint_func = make_custom_blueprint
+            extra_args['base_url'] = element['oauth_base_url']
+            extra_args['token_url'] = element['oauth_token_url']
+            extra_args['authorization_url'] = element['oauth_auth_url']
         else:
             log.exception("Unknown provider")
             ub.session.rollback()
@@ -196,9 +201,7 @@ if ub.oauth_support:
             client_secret=element['oauth_client_secret'],
             redirect_to="oauth."+element['provider_name']+"_login",
             scope=element['scope'],
-            base_url=element.get('oauth_base_url', None),
-            token_url=element.get('oauth_token_url', None),
-            authorization_url=element.get('oauth_auth_url', None),
+            **extra_args
         )
         element['blueprint'] = blueprint
         element['blueprint'].backend = OAuthBackend(ub.OAuth, ub.session, str(element['id']),
