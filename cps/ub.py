@@ -666,6 +666,17 @@ def migrate_Database(session):
         print('Settings database is not writeable. Exiting...')
         sys.exit(1)
 
+    # Check for OAuthProvider custom-provider columns
+    try:
+        session.query(exists().where(OAuthProvider.oauth_authorization_url)).scalar()
+    except exc.OperationalError:  # Database is not compatible, some columns are missing
+        with engine.connect() as conn:
+            conn.execute("ALTER TABLE oauthprovider ADD column `oauth_base_url` String DEFAULT ''")
+            conn.execute("ALTER TABLE oauthprovider ADD column `oauth_token_url` String DEFAULT ''")
+            conn.execute("ALTER TABLE oauthprovider ADD column `oauth_authorization_url` String DEFAULT ''")
+            conn.execute("ALTER TABLE oauthprovider ADD column `oauth_userinfo_url` String DEFAULT ''")
+        session.commit()
+
 
 def clean_database(session):
     # Remove expired remote login tokens
