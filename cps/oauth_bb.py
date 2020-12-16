@@ -127,19 +127,24 @@ def generic_error(blueprint, error, error_description=None, error_uri=None):
 
 if ub.oauth_support:
     oauthblueprints = []
-    if not ub.session.query(ub.OAuthProvider).count():
+    if not ub.session.query(ub.OAuthProvider) \
+             .filter(ub.OAuthProvider.provider_name == "github").count():
         oauthProvider = ub.OAuthProvider()
         oauthProvider.provider_name = "github"
         oauthProvider.active = False
         ub.session.add(oauthProvider)
         ub.session.commit()
 
+    if not ub.session.query(ub.OAuthProvider) \
+             .filter(ub.OAuthProvider.provider_name == "google").count():
         oauthProvider = ub.OAuthProvider()
         oauthProvider.provider_name = "google"
         oauthProvider.active = False
         ub.session.add(oauthProvider)
         ub.session.commit()
 
+    if not ub.session.query(ub.OAuthProvider) \
+             .filter(ub.OAuthProvider.provider_name == "custom").count():
         oauthProvider = ub.OAuthProvider()
         oauthProvider.provider_name = "custom"
         oauthProvider.active = False
