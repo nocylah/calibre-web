@@ -269,6 +269,10 @@ class OAuthProvider(Base):
     provider_name = Column(String)
     oauth_client_id = Column(String)
     oauth_client_secret = Column(String)
+    oauth_base_url = Column(String)
+    oauth_token_url = Column(String)
+    oauth_authorization_url = Column(String)
+    oauth_userinfo_url = Column(String)
     active = Column(Boolean)
 
 

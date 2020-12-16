@@ -529,6 +529,18 @@ def _configuration_oauth_helper(to_save):
             reboot_required = True
             element['oauth_client_id'] = to_save["config_" + str(element['id']) + "_oauth_client_id"]
             element['oauth_client_secret'] = to_save["config_" + str(element['id']) + "_oauth_client_secret"]
+
+        if element['provider_name'] == 'custom':
+            if to_save["config_custom_oauth_base_url"] != element['oauth_base_url'] or \
+               to_save["config_custom_oauth_token_url"] != element['oauth_token_url'] or \
+               to_save["config_custom_oauth_auth_url"] != element['oauth_auth_url']:
+               to_save["config_custom_oauth_userinfo_url"] != element['oauth_userinfo_url']:
+                reboot_required = True
+                element['oauth_base_url'] = to_save["config_custom_oauth_base_url"]
+                element['oauth_token_url'] = to_save["config_custom_oauth_token_url"]
+                element['oauth_auth_url'] = to_save["config_custom_oauth_auth_url"]
+                element['oauth_userinfo_url'] = to_save["config_custom_oauth_userinfo_url"]
+
         if to_save["config_" + str(element['id']) + "_oauth_client_id"] \
             and to_save["config_" + str(element['id']) + "_oauth_client_secret"]:
             active_oauths += 1

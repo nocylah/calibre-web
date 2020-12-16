@@ -361,6 +361,41 @@
             <label for="config_{{ prov['id'] }}_oauth_client_secret">{{_('%(provider)s OAuth Client Secret', provider=prov['provider_name'])}}</label>
             <input type="text" class="form-control" id="config_{{ prov['id'] }}_oauth_client_secret" name="config_{{ prov['id'] }}_oauth_client_secret" value="{% if prov['oauth_client_secret']%}{{ prov['oauth_client_secret'] }}{% endif %}" autocomplete="off">
           </div>
+
+          {% if prov['provider_name'] == 'custom' %}
+          <div class="form-group">
+            <label for="config_custom_oauth_base_url">{{_('Custom Base URL')}}</label>
+            <input type="text" class="form-control"
+                   id="config_custom_oauth_base_url"
+                   name="config_custom_oauth_base_url"
+                   value="{% if prov['oauth_base_url']%}{{ prov['oauth_base_url'] }}{% endif %}"
+                   autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="config_custom_oauth_token_url">{{_('Custom Token URL')}}</label>
+            <input type="text" class="form-control"
+                   id="config_custom_oauth_token_url"
+                   name="config_custom_oauth_token_url"
+                   value="{% if prov['oauth_token_url']%}{{ prov['oauth_token_url'] }}{% endif %}"
+                   autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="config_custom_oauth_auth_url">{{_('Custom Authorization URL')}}</label>
+            <input type="text" class="form-control"
+                   id="config_custom_oauth_auth_url"
+                   name="config_custom_oauth_auth_url"
+                   value="{% if prov['oauth_auth_url']%}{{ prov['oauth_auth_url'] }}{% endif %}"
+                   autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="config_custom_oauth_userinfo_url">{{_('Custom Userinfo URL')}}</label>
+            <input type="text" class="form-control"
+                   id="config_custom_oauth_userinfo_url"
+                   name="config_custom_oauth_userinfo_url"
+                   value="{% if prov['oauth_userinfo_url']%}{{ prov['oauth_userinfo_url'] }}{% endif %}"
+                   autocomplete="off">
+          </div>
+          {% endif %}
         {% endfor %}
         </div>
       {% endif %}

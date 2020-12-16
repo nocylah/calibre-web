@@ -27,7 +27,7 @@ from functools import wraps
 from flask import session, request, make_response, abort
 from flask import Blueprint, flash, redirect, url_for
 from flask_babel import gettext as _
-from flask_dance.consumer import oauth_authorized, oauth_error
+from flask_dance.consumer import oauth_authorized, oauth_error, OAuth2ConsumerBlueprint
 from flask_dance.contrib.github import make_github_blueprint, github
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import login_user, current_user
@@ -36,7 +36,6 @@ from sqlalchemy.orm.exc import NoResultFound
 from . import constants, logger, config, app, ub
 from .web import login_required
 from .oauth import OAuthBackend, backend_resultcode
-
 
 oauth_check = {}
 oauth = Blueprint('oauth', __name__)
@@ -60,6 +59,22 @@ def oauth_required(f):
 
 def register_oauth_blueprint(cid, show_name):
     oauth_check[cid] = show_name
+
+
+def make_custom_blueprint(client_id=None, client_secret=None, redirect_to=None,
+                          scope=None, base_url=None, token_url=None,
+                          authorization_url=None, **kwargs):
+    return OAuth2ConsumerBlueprint(
+        "OAuth", __name__,
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_to=redirect_to,
+        scope=scope,
+        base_url=base_url,
+        token_url=token_url,
+        authorization_url=authorization_url,
+        **kwargs
+    )
 
 
 def register_user_with_oauth(user=None):
@@ -97,6 +112,19 @@ def logout_oauth_user():
             session.pop(str(oauth_key) + '_oauth_user_id')
 
 
+def generic_error(blueprint, error, error_description=None, error_uri=None):
+    msg = (
+        u"OAuth error from {name}! "
+        u"error={error} description={description} uri={uri}"
+    ).format(
+        name=blueprint.name,
+        error=error,
+        description=error_description,
+        uri=error_uri,
+    )  # ToDo: Translate
+    flash(msg, category="error")
+
+
 if ub.oauth_support:
     oauthblueprints = []
     if not ub.session.query(ub.OAuthProvider).count():
@@ -105,8 +133,15 @@ if ub.oauth_support:
         oauthProvider.active = False
         ub.session.add(oauthProvider)
         ub.session.commit()
+
         oauthProvider = ub.OAuthProvider()
         oauthProvider.provider_name = "google"
+        oauthProvider.active = False
+        ub.session.add(oauthProvider)
+        ub.session.commit()
+
+        oauthProvider = ub.OAuthProvider()
+        oauthProvider.provider_name = "custom"
         oauthProvider.active = False
         ub.session.add(oauthProvider)
         ub.session.commit()
@@ -126,19 +161,39 @@ if ub.oauth_support:
                 oauth_client_id=oauth_ids[1].oauth_client_id,
                 oauth_client_secret=oauth_ids[1].oauth_client_secret,
                 obtain_link='https://console.developers.google.com/apis/credentials')
+    ele3 = dict(provider_name='custom',
+                id=oauth_ids[2].id,
+                active=oauth_ids[2].active,
+                scope=None,
+                oauth_base_url=None,
+                oauth_token_url=None,
+                oauth_auth_url=None,
+                oauth_client_id=oauth_ids[1].oauth_client_id,
+                oauth_client_secret=oauth_ids[1].oauth_client_secret,
+                obtain_link=None)
     oauthblueprints.append(ele1)
     oauthblueprints.append(ele2)
+    oauthblueprints.append(ele3)
 
     for element in oauthblueprints:
         if element['provider_name'] == 'github':
             blueprint_func = make_github_blueprint
-        else:
+        elif element['provider_name'] == 'google':
             blueprint_func = make_google_blueprint
+        elif element['provider_name'] == 'custom':
+            blueprint_func = make_custom_blueprint
+        else:
+            log.exception("Unknown provider")
+            ub.session.rollback()
+
         blueprint = blueprint_func(
             client_id=element['oauth_client_id'],
             client_secret=element['oauth_client_secret'],
             redirect_to="oauth."+element['provider_name']+"_login",
-            scope=element['scope']
+            scope=element['scope'],
+            base_url=element.get('oauth_base_url', None),
+            token_url=element.get('oauth_token_url', None),
+            authorization_url=element.get('oauth_auth_url', None),
         )
         element['blueprint'] = blueprint
         element['blueprint'].backend = OAuthBackend(ub.OAuth, ub.session, str(element['id']),
@@ -178,6 +233,22 @@ if ub.oauth_support:
         google_info = resp.json()
         google_user_id = str(google_info["id"])
         return oauth_update_token(str(oauthblueprints[1]['id']), token, google_user_id)
+
+
+    @oauth_authorized.connect_via(oauthblueprints[2]['blueprint'])
+    def custom_logged_in(blueprint, token):
+        if not token:
+            flash(_(u"Failed to log in via OAuth."), category="error")
+            return False
+
+        resp = blueprint.session.get(oauthblueprints[2]['oauth_userinfo_url'])
+        if not resp.ok:
+            flash(_(u"Failed to fetch user info via OAuth."), category="error")
+            return False
+
+        info = resp.json()
+        user_id = str(info["id"])
+        return oauth_update_token(str(oauthblueprints[2]['id']), token, user_id)
 
 
     def oauth_update_token(provider_id, token, provider_user_id):
@@ -293,18 +364,8 @@ if ub.oauth_support:
 
     # notify on OAuth provider error
     @oauth_error.connect_via(oauthblueprints[0]['blueprint'])
-    def github_error(blueprint, error, error_description=None, error_uri=None):
-        msg = (
-            u"OAuth error from {name}! "
-            u"error={error} description={description} uri={uri}"
-        ).format(
-            name=blueprint.name,
-            error=error,
-            description=error_description,
-            uri=error_uri,
-        )  # ToDo: Translate
-        flash(msg, category="error")
-
+    def github_error(*args, **kwargs):
+        generic_error(*args, **kwargs)
 
     @oauth.route('/link/github')
     @oauth_required
@@ -337,22 +398,34 @@ if ub.oauth_support:
         flash(_(u"Google Oauth error, please retry later."), category="error")
         return redirect(url_for('web.login'))
 
-
     @oauth_error.connect_via(oauthblueprints[1]['blueprint'])
-    def google_error(blueprint, error, error_description=None, error_uri=None):
-        msg = (
-            u"OAuth error from {name}! "
-            u"error={error} description={description} uri={uri}"
-        ).format(
-            name=blueprint.name,
-            error=error,
-            description=error_description,
-            uri=error_uri,
-        )  # ToDo: Translate
-        flash(msg, category="error")
+    def google_error(*args, **kwargs):
+        generic_error(*args, **kwargs)
 
 
     @oauth.route('/unlink/google', methods=["GET"])
     @login_required
     def google_login_unlink():
         return unlink_oauth(oauthblueprints[1]['id'])
+
+
+    @oauth.route('/link/custom')
+    @oauth_required
+    def custom_login():
+        if not google.authorized:
+            return redirect(url_for("google.login"))
+        resp = google.get("/oauth2/v2/userinfo")
+        if resp.ok:
+            account_info_json = resp.json()
+            return bind_oauth_or_register(oauthblueprints[1]['id'], account_info_json['id'], 'google.login', 'google')
+        flash(_(u"Google Oauth error, please retry later."), category="error")
+        return redirect(url_for('web.login'))
+
+    @oauth_error.connect_via(oauthblueprints[2]['blueprint'])
+    def custom_error(*args, **kwargs):
+        generic_error(*args, **kwargs)
+
+    @oauth.route('/unlink/custom', methods=["GET"])
+    @login_required
+    def custom_login_unlink():
+        return unlink_oauth(oauthblueprints[2]['id'])
