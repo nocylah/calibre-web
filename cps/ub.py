@@ -271,7 +271,7 @@ class OAuthProvider(Base):
     oauth_client_secret = Column(String)
     oauth_base_url = Column(String)
     oauth_token_url = Column(String)
-    oauth_authorization_url = Column(String)
+    oauth_auth_url = Column(String)
     oauth_userinfo_url = Column(String)
     active = Column(Boolean)
 
@@ -673,7 +673,7 @@ def migrate_Database(session):
         with engine.connect() as conn:
             conn.execute("ALTER TABLE oauthprovider ADD column `oauth_base_url` String DEFAULT ''")
             conn.execute("ALTER TABLE oauthprovider ADD column `oauth_token_url` String DEFAULT ''")
-            conn.execute("ALTER TABLE oauthprovider ADD column `oauth_authorization_url` String DEFAULT ''")
+            conn.execute("ALTER TABLE oauthprovider ADD column `oauth_auth_url` String DEFAULT ''")
             conn.execute("ALTER TABLE oauthprovider ADD column `oauth_userinfo_url` String DEFAULT ''")
         session.commit()
 

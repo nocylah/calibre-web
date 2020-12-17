@@ -529,6 +529,10 @@ def _configuration_oauth_helper(to_save):
             reboot_required = True
             element['oauth_client_id'] = to_save["config_" + str(element['id']) + "_oauth_client_id"]
             element['oauth_client_secret'] = to_save["config_" + str(element['id']) + "_oauth_client_secret"]
+            element['oauth_base_url'] = None
+            element['oauth_token_url'] = None
+            element['oauth_auth_url'] = None
+            element['oauth_userinfo_url'] = None
 
         if element['provider_name'] == 'custom':
             if to_save["config_custom_oauth_base_url"] != element['oauth_base_url'] or \
@@ -550,6 +554,10 @@ def _configuration_oauth_helper(to_save):
         ub.session.query(ub.OAuthProvider).filter(ub.OAuthProvider.id == element['id']).update(
             {"oauth_client_id": to_save["config_" + str(element['id']) + "_oauth_client_id"],
              "oauth_client_secret": to_save["config_" + str(element['id']) + "_oauth_client_secret"],
+             "oauth_base_url": to_save["config_custom_oauth_base_url"],
+             "oauth_token_url": to_save["config_custom_oauth_token_url"],
+             "oauth_auth_url": to_save["config_custom_oauth_auth_url"],
+             "oauth_userinfo_url": to_save["config_custom_oauth_userinfo_url"],
              "active": element["active"]})
     return reboot_required
 

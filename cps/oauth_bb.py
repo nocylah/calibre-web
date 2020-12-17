@@ -170,12 +170,12 @@ if ub.oauth_support:
                 id=oauth_ids[2].id,
                 active=oauth_ids[2].active,
                 scope=None,
-                oauth_base_url=None,
-                oauth_token_url=None,
-                oauth_auth_url=None,
-                oauth_client_id=oauth_ids[1].oauth_client_id,
-                oauth_client_secret=oauth_ids[1].oauth_client_secret,
-                obtain_link=None)
+                oauth_base_url=oauth_ids[2].oauth_base_url,
+                oauth_token_url=oauth_ids[2].oauth_token_url,
+                oauth_auth_url=oauth_ids[2].oauth_auth_url,
+                oauth_client_id=oauth_ids[2].oauth_client_id,
+                oauth_client_secret=oauth_ids[2].oauth_client_secret,
+                obtain_link='')
     oauthblueprints.append(ele1)
     oauthblueprints.append(ele2)
     oauthblueprints.append(ele3)
