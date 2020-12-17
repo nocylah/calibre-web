@@ -158,6 +158,10 @@ if ub.oauth_support:
                 oauth_client_id=oauth_ids[0].oauth_client_id,
                 scope=None,
                 oauth_client_secret=oauth_ids[0].oauth_client_secret,
+                oauth_base_url=None,
+                oauth_token_url=None,
+                oauth_auth_url=None,
+                oauth_userinfo_url=None,
                 obtain_link='https://github.com/settings/developers')
     ele2 = dict(provider_name='google',
                 id=oauth_ids[1].id,
@@ -165,6 +169,10 @@ if ub.oauth_support:
                 scope=["https://www.googleapis.com/auth/userinfo.email"],
                 oauth_client_id=oauth_ids[1].oauth_client_id,
                 oauth_client_secret=oauth_ids[1].oauth_client_secret,
+                oauth_base_url=None,
+                oauth_token_url=None,
+                oauth_auth_url=None,
+                oauth_userinfo_url=None,
                 obtain_link='https://console.developers.google.com/apis/credentials')
     ele3 = dict(provider_name='custom',
                 id=oauth_ids[2].id,
@@ -173,6 +181,7 @@ if ub.oauth_support:
                 oauth_base_url=oauth_ids[2].oauth_base_url,
                 oauth_token_url=oauth_ids[2].oauth_token_url,
                 oauth_auth_url=oauth_ids[2].oauth_auth_url,
+                oauth_userinfo_url=oauth_ids[2].oauth_userinfo_url,
                 oauth_client_id=oauth_ids[2].oauth_client_id,
                 oauth_client_secret=oauth_ids[2].oauth_client_secret,
                 obtain_link='')

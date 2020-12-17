@@ -668,7 +668,7 @@ def migrate_Database(session):
 
     # Check for OAuthProvider custom-provider columns
     try:
-        session.query(exists().where(OAuthProvider.oauth_authorization_url)).scalar()
+        session.query(exists().where(OAuthProvider.oauth_auth_url)).scalar()
     except exc.OperationalError:  # Database is not compatible, some columns are missing
         with engine.connect() as conn:
             conn.execute("ALTER TABLE oauthprovider ADD column `oauth_base_url` String DEFAULT ''")
