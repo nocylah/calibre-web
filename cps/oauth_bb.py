@@ -429,13 +429,15 @@ if ub.oauth_support:
     @oauth.route('/link/custom')
     @oauth_required
     def custom_login():
-        if not google.authorized:
-            return redirect(url_for("google.login"))
-        resp = google.get("/oauth2/v2/userinfo")
+        blueprint = oauthblueprints[2]['blueprint']
+        if not blueprint.authorized:
+            return redirect(url_for("custom.login"))
+        resp = blueprint.session.get(oauthblueprints[2]['oauth_userinfo_url'])
         if resp.ok:
             account_info_json = resp.json()
-            return bind_oauth_or_register(oauthblueprints[1]['id'], account_info_json['id'], 'google.login', 'google')
-        flash(_(u"Google Oauth error, please retry later."), category="error")
+            return bind_oauth_or_register(oauthblueprints[2]['id'],
+                account_info_json['id'], 'custom.login', 'custom')
+        flash(_(u"Oauth error, please retry later."), category="error")
         return redirect(url_for('web.login'))
 
     @oauth_error.connect_via(oauthblueprints[2]['blueprint'])
